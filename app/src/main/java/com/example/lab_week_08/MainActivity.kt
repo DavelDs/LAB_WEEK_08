@@ -13,6 +13,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.example.lab_week_08.worker.FirstWorker
 import com.example.lab_week_08.worker.SecondWorker
+import com.example.lab_week_08.worker.ThirdWorker
 import android.os.Build
 import android.content.pm.PackageManager
 import android.content.Intent
@@ -90,19 +91,45 @@ class MainActivity : AppCompatActivity() {
         //Here we're observing the returned LiveData and getting the
         //state result of the worker (Can be SUCCEEDED, FAILED, or CANCELLED)
         //isFinished is used to check if the state is either SUCCEEDED or FAILED
-        workManager.getWorkInfoByIdLiveData(firstRequest.id)
-            .observe(this) { info ->
-                if (info.state.isFinished) {
-                    showResult("First process is done")
+        workManager.getWorkInfoByIdLiveData(firstRequest.id).observe(this) { info ->
+            if (info != null && info.state.isFinished) {
+                showResult("First process is done ✅")
+
+                // === 2️⃣ Second Worker ===
+                val secondRequest = OneTimeWorkRequest.Builder(SecondWorker::class.java)
+                    .setConstraints(networkConstraints)
+                    .setInputData(getIdInputData(SecondWorker.INPUT_DATA_ID, id))
+                    .build()
+
+                workManager.enqueue(secondRequest)
+
+                workManager.getWorkInfoByIdLiveData(secondRequest.id).observe(this) { secondInfo ->
+                    if (secondInfo != null && secondInfo.state.isFinished) {
+                        showResult("Second process is done ✅")
+
+                        // === 3️⃣ Jalankan NotificationService ===
+                        launchNotificationService()
+
+                        // === 4️⃣ Third Worker ===
+                        val thirdRequest = OneTimeWorkRequest.Builder(ThirdWorker::class.java)
+                            .setConstraints(networkConstraints)
+                            .setInputData(getIdInputData(ThirdWorker.INPUT_DATA_ID, id))
+                            .build()
+
+                        workManager.enqueue(thirdRequest)
+
+                        workManager.getWorkInfoByIdLiveData(thirdRequest.id).observe(this) { thirdInfo ->
+                            if (thirdInfo != null && thirdInfo.state.isFinished) {
+                                showResult("Third process is done ✅")
+
+                                // === 5️⃣ Jalankan SecondNotificationService ===
+                                launchSecondNotificationService()
+                            }
+                        }
+                    }
                 }
             }
-        workManager.getWorkInfoByIdLiveData(secondRequest.id)
-            .observe(this) { info ->
-                if (info.state.isFinished) {
-                    showResult("Second process is done")
-                    launchNotificationService()
-                }
-            }
+        }
     }
     //Build the data into the correct format before passing it to the worker as input
     private fun getIdInputData(idKey: String, idValue: String) =
@@ -132,6 +159,22 @@ class MainActivity : AppCompatActivity() {
         //Start the foreground service through the Service Intent
         ContextCompat.startForegroundService(this, serviceIntent)
     }
+    //Launch the SecondNotificationService
+    private fun launchSecondNotificationService() {
+        // Observe if the service process is done or not
+        SecondNotificationService.trackingCompletion.observe(this) { Id ->
+            showResult("Process for Second Notification Channel ID $Id is done!")
+        }
+
+        // Create an Intent to start the SecondNotificationService
+        val secondServiceIntent = Intent(this, SecondNotificationService::class.java).apply {
+            putExtra(EXTRA_ID, "002") // Bisa pakai ID berbeda biar jelas
+        }
+
+        // Start the foreground service
+        ContextCompat.startForegroundService(this, secondServiceIntent)
+    }
+
     companion object{
         const val EXTRA_ID = "Id"
     }

@@ -136,13 +136,13 @@ class NotificationService : Service() {
             .setContentText("Check it out!")
             //Sets the notification icon
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-    //Sets the action/intent to be executed when the user clicks the notification
-    .setContentIntent(pendingIntent)
-    //Sets the ticker message (brief message on top of your device)
-    .setTicker("Second worker process is done, check it out!")
-    //setOnGoing() controls whether the notification is dismissible or not by the user
-    //If true, the notification is not dismissible and can only be closed by the app
-    .setOngoing(true)
+            //Sets the action/intent to be executed when the user clicks the notification
+            .setContentIntent(pendingIntent)
+            //Sets the ticker message (brief message on top of your device)
+            .setTicker("Second worker process is done, check it out!")
+            //setOnGoing() controls whether the notification is dismissible or not by the user
+            //If true, the notification is not dismissible and can only be closed by the app
+            .setOngoing(true)
 
     //This is a callback and part of a life cycle
 //This callback will be called when the service is started
@@ -172,7 +172,7 @@ class NotificationService : Service() {
         }
         return returnValue
     }
-//A function to update the notification to display a count down from 10 to 0
+    //A function to update the notification to display a count down from 10 to 0
     private fun countDownFromTenToZero(notificationBuilder:
                                        NotificationCompat.Builder) {
         //Gets the notification manager
@@ -204,12 +204,12 @@ class NotificationService : Service() {
     companion object {
         const val NOTIFICATION_ID = 0xCA7
         const val EXTRA_ID = "Id"
-//this is a LiveData which is a data holder that automatically
+        //this is a LiveData which is a data holder that automatically
 //updates the UI based on what is observed
 //It'll return the channel ID into the LiveData after
 //the countdown has reached 0, giving a sign that
 //the service process is done
-private val mutableID = MutableLiveData<String>()
+        private val mutableID = MutableLiveData<String>()
         val trackingCompletion: LiveData<String> = mutableID
     }
 }
